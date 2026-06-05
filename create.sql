@@ -47,10 +47,10 @@ CREATE TABLE "tournaments"(
     "time_control_id" INTEGER NOT NULL,
     "date_from" DATE NOT NULL,
     "date_to" DATE,
-    CHECK (date_from < date_to)
+    CHECK (date_from <= date_to)
 );
 
-CREATE TABLE "chess_type"(
+CREATE TABLE "chess_types"(
     "chess_type_id" SERIAL PRIMARY KEY,
     "name" VARCHAR(64) NOT NULL,
     "total_time_from" INTERVAL,
@@ -154,7 +154,7 @@ ALTER TABLE
 ALTER TABLE
     "club_contact_data" ADD CONSTRAINT "club_contact_data_club_id_foreign" FOREIGN KEY("club_id") REFERENCES "clubs"("club_id");
 ALTER TABLE
-    "tournaments" ADD CONSTRAINT "tournaments_chess_type_id_foreign" FOREIGN KEY("chess_type_id") REFERENCES "chess_type"("chess_type_id");
+    "tournaments" ADD CONSTRAINT "tournaments_chess_type_id_foreign" FOREIGN KEY("chess_type_id") REFERENCES "chess_types"("chess_type_id");
 ALTER TABLE
     "players_titles" ADD CONSTRAINT "players_titles_player_id_foreign" FOREIGN KEY("player_id") REFERENCES "players"("player_id");
 ALTER TABLE
@@ -178,11 +178,11 @@ ALTER TABLE
 ALTER TABLE
     "live_rating" ADD CONSTRAINT "live_rating_player_id_foreign" FOREIGN KEY("player_id") REFERENCES "players"("player_id");
 ALTER TABLE
-    "live_rating" ADD CONSTRAINT "live_rating_chess_type_id_foreign" FOREIGN KEY("chess_type_id") REFERENCES "chess_type"("chess_type_id");
+    "live_rating" ADD CONSTRAINT "live_rating_chess_type_id_foreign" FOREIGN KEY("chess_type_id") REFERENCES "chess_types"("chess_type_id");
 ALTER TABLE
     "rating_history" ADD CONSTRAINT "rating_history_player_id_foreign" FOREIGN KEY("player_id") REFERENCES "players"("player_id");
 ALTER TABLE
-    "rating_history" ADD CONSTRAINT "rating_history_chess_type_id_foreign" FOREIGN KEY("chess_type_id") REFERENCES "chess_type"("chess_type_id");
+    "rating_history" ADD CONSTRAINT "rating_history_chess_type_id_foreign" FOREIGN KEY("chess_type_id") REFERENCES "chess_types"("chess_type_id");
 ALTER TABLE
     "games" ADD CONSTRAINT "games_black_player_id_foreign" FOREIGN KEY("black_player_id") REFERENCES "players"("player_id");
 ALTER TABLE
@@ -287,12 +287,12 @@ $$
 BEGIN
     CASE (
         SELECT ct.rating_policy
-        FROM chess_type ct
+        FROM chess_types ct
         WHERE ct.chess_type_id = get_K_factor.chess_type_id
         )
     WHEN 'flat' THEN RETURN  (
         SELECT ct.k_factor
-        FROM chess_type ct
+        FROM chess_types ct
         WHERE ct.chess_type_id = get_K_factor.chess_type_id
     );
     WHEN 'unrated' THEN RETURN 0;

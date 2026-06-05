@@ -25,7 +25,7 @@ BEGIN;
 
 TRUNCATE
     games, players_titles, rating_history, live_rating,
-    tournaments, time_controls, chess_type, titles,
+    tournaments, time_controls, chess_types, titles,
     club_contact_data, club_memberships, clubs,
     person_contact_data, arbiters, players, persons, countries
     RESTART IDENTITY CASCADE;
@@ -132,7 +132,7 @@ INSERT INTO time_controls (starting_time, increment) VALUES
 --   flat          -> K is a fixed number (k_factor column)
 --   unrated       -> K = 0, ratings never move
 -- ----------------------------------------------------------------------------
-INSERT INTO chess_type (name, total_time_from, total_time_to, rating_policy, k_factor) VALUES
+INSERT INTO chess_types (name, total_time_from, total_time_to, rating_policy, k_factor) VALUES
                                                                                            ('Classical', '120 minutes', '360 minutes', 'fide_standard', NULL),  -- 1
                                                                                            ('Rapid',     '20 minutes',  '60 minutes',  'flat',          20),    -- 2
                                                                                            ('Blitz',     '6 minutes',   '15 minutes',  'unrated',       NULL);  -- 3
