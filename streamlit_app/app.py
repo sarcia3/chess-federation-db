@@ -14,7 +14,7 @@ import streamlit as st
 st.set_page_config(page_title="Chess Tournament Manager", page_icon="♟", layout="wide")
 
 from theme import load_styles
-from screens import enter_results, add_game, browse, players
+from screens import enter_results, add_game, browse, players, clubs, tournament_creator
 
 load_styles()  # Catppuccin CSS vars + styles/app.css, injected once per rerun
 
@@ -27,17 +27,22 @@ st.sidebar.title("♟ Tournament Manager")
 nav = st.navigation(
     {
         "Tournament": [
+            st.Page(tournament_creator.render, title="Create tournament", url_path="tournament"),
             st.Page(enter_results.render, title="Enter results",
                     url_path="enter-results", default=True),
             st.Page(add_game.render, title="Add game",
                     url_path="add-game"),
         ],
-        "Data view": [
+        "Registry": [
             st.Page(browse.render, title="Browse data",
                     url_path="browse"),
             st.Page(players.render, title="Players",
                     url_path="players"),
+            st.Page(clubs.render, title="Clubs",
+                    url_path="clubs"),
         ],
+        "Ratings": [
+        ]
     }
 )
 

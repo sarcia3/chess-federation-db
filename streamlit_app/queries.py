@@ -4,7 +4,7 @@ Keeping these in one place avoids duplicating SQL across the screen modules.
 All of them go through the helpers in db.py, so there is no hidden ORM.
 """
 
-from db import run_query
+from db import run_query, run_exec
 
 # result is the WHITE player's score: 1.0 white win, 0.5 draw, 0.0 black win.
 #
@@ -27,10 +27,15 @@ def result_to_option(value):
 
 
 def player_options():
-    """[{player_id, name}] sorted by full name — used by searchable selectboxes."""
+    """[{player_id, person_id, name}] by full name — for searchable selectboxes.
+
+    person_id rides along so a player screen can hand it straight to the shared
+    person editor (all of a player's editable data lives on persons).
+    """
     return run_query(
         """
         SELECT pl.player_id,
+               pl.person_id,
                p.first_name || ' ' || p.last_name AS name
         FROM players pl
         JOIN persons p USING (person_id)
@@ -38,9 +43,151 @@ def player_options():
         """
     )
 
+def arbiter_options():
+    """[{arbiter_id, person_id, name}] by full name — for searchable selectboxes.
+    """
+    return run_query(
+        """
+        SELECT a.arbiter_id,
+               a.person_id,
+               p.first_name || ' ' || p.last_name AS name
+        FROM arbiters a
+        JOIN persons p USING (person_id)
+        ORDER BY name
+        """
+    )
+
+def time_control_options():
+    return run_query("""
+    SELECT time_control_id, 
+    EXTRACT('HOURS' FROM starting_time) * 60 +
+    EXTRACT('MINUTES' FROM starting_time) AS starting_time,  
+    EXTRACT('SECONDS' FROM increment)::INT AS increment 
+    FROM time_controls; 
+    """)
+# maybe I shouldn't add such a simple query, but I like the separation
+
+
+def person_info(person_id):
+    """One person's editable fields (+ country name for display)."""
+    return run_query(
+        """
+        SELECT pe.person_id, pe.first_name, pe.last_name,
+               pe.date_of_birth, pe.gender, pe.country_id,
+               c.name AS country
+        FROM persons pe
+        JOIN countries c USING (country_id)
+        WHERE pe.person_id = %s
+        """,
+        (person_id,),
+    )
+
+
+def update_person(person_id, first_name, last_name, date_of_birth, gender, country_id):
+    """Persist edits to one persons row. Returns affected row count."""
+    return run_exec(
+        """
+        UPDATE persons
+           SET first_name = %s, last_name = %s, date_of_birth = %s,
+               gender = %s, country_id = %s
+         WHERE person_id = %s
+        """,
+        (first_name, last_name, date_of_birth, gender, country_id, person_id),
+    )
+
+
+def country_options():
+    """[{country_id, name}] for a country picker, alphabetical."""
+    return run_query("SELECT country_id, name FROM countries ORDER BY name")
+
+
+def non_player_persons():
+    """Persons not yet registered as players — candidates for 'Add player'.
+
+    A player must already exist as a person, so this is the pick-list; people
+    already on the players roster are excluded.
+    """
+    return run_query(
+        """
+        SELECT pe.person_id,
+               pe.first_name || ' ' || pe.last_name AS name
+        FROM persons pe
+        WHERE NOT EXISTS (
+            SELECT 1 FROM players pl WHERE pl.person_id = pe.person_id
+        )
+        ORDER BY name
+        """
+    )
+
+
+def add_player(person_id):
+    """Register an existing person as a player."""
+    return run_exec("INSERT INTO players (person_id) VALUES (%s)", (person_id,))
+
+def chess_type_options():
+    return run_query("SELECT chess_type_id, name FROM chess_types ORDER BY name")
+
+def player_info(player_id):
+    return run_query("""
+       SELECT 
+       pe.first_name,
+       pe.last_name,
+       date_of_birth,
+       gender,
+       c.name AS country
+       FROM
+       players pl JOIN persons pe USING (person_id)
+       JOIN countries c USING (country_id)
+       where pl.player_id = %s
+   """, str(player_id))
 
 def tournament_options():
     return run_query("SELECT tournament_id, name FROM tournaments ORDER BY name")
+
+
+def tournament_info(tournament_id):
+    """One tournament's full row (FK ids included) — for prefilling the editor."""
+    return run_query(
+        """
+        SELECT tournament_id, name, city, street_address,
+               country_id, chess_type_id, main_arbiter, time_control_id,
+               date_from, date_to
+        FROM tournaments
+        WHERE tournament_id = %s
+        """,
+        (tournament_id,),
+    )
+
+
+_TOURNAMENT_COLS = (
+    "name", "city", "street_address", "country_id", "chess_type_id",
+    "main_arbiter", "time_control_id", "date_from", "date_to",
+)
+
+def insert_tournament(name, city, street_address, country_id, chess_type_id,
+                      main_arbiter, time_control_id, date_from, date_to):
+    values = [name, city, street_address, country_id, chess_type_id,
+              main_arbiter, time_control_id, date_from, date_to]
+    if not all(str(v).strip() != "" for v in values):
+        raise ValueError("All fields must be filled up before inserting!")
+
+    cols = ", ".join(_TOURNAMENT_COLS)
+    placeholders = ", ".join(["%s"] * len(_TOURNAMENT_COLS))
+    return run_exec(
+        f"INSERT INTO tournaments ({cols}) VALUES ({placeholders})",
+        values,
+    )
+
+
+def update_tournament(tournament_id, name, city, street_address, country_id,
+                      chess_type_id, main_arbiter, time_control_id,
+                      date_from, date_to):
+    assignments = ", ".join(f"{c} = %s" for c in _TOURNAMENT_COLS)
+    return run_exec(
+        f"UPDATE tournaments SET {assignments} WHERE tournament_id = %s",
+        (name, city, street_address, country_id, chess_type_id,
+         main_arbiter, time_control_id, date_from, date_to, tournament_id),
+    )
 
 
 def round_games(tournament_id, round_number):
