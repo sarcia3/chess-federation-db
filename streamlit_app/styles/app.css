@@ -2,14 +2,17 @@
    defines from .streamlit/config.toml — never hard-code Catppuccin hex here. */
 
 /* Save = green, Clear = red. --ctp-on-accent is the flavor's Base color, which
-   is light in Latte and dark in Mocha, so the label stays readable either way. */
-.st-key-save_btn button {
+   is light in Latte and dark in Mocha, so the label stays readable either way.
+   Matched by key PREFIX ([class*=...]) so each button can have a unique key
+   (save_btn_edit, save_btn_addplayer, ...) — Streamlit requires unique keys
+   per page — while still picking up the same color. */
+[class*="st-key-save_btn"] button {
     background: var(--ctp-green);
     border-color: var(--ctp-green);
     color: var(--ctp-on-accent);
 }
 
-.st-key-clear_btn button {
+[class*="st-key-clear_btn"] button {
     background: var(--ctp-red);
     border-color: var(--ctp-red);
     color: var(--ctp-on-accent);

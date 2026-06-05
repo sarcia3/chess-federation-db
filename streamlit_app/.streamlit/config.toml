@@ -2,14 +2,30 @@
 #   Light slot = Latte,  Dark slot = Mocha,  accent = Mauve.
 # Switch between them in the app: ⋮ menu -> Settings -> "Choose app theme".
 
+[client]
+# "viewer"  = hide Deploy + developer options, but KEEP the ⋮ menu's Settings
+#             dialog (so users can still switch the app theme).
+# "minimal" = hide the whole menu too (no Settings → no theme switcher).
+toolbarMode = "viewer"
+
 [theme]
-font = "sans-serif"
+font = "Atkinson Hyperlegible Next, sans-serif"
+
+# Register the Atkinson Hyperlegible Next webfont (served from Google Fonts).
+[[theme.fontFaces]]
+family = "Atkinson Hyperlegible Next"
+url = "https://fonts.gstatic.com/s/atkinsonhyperlegiblenext/v7/NaP4cYPdHfdVxJw0IfIP0lvYFqijb-UxCtm5_wdGscKFt4tOOfV4ZmW37LQhtA.ttf"
+weight = 400
+
+[[theme.fontFaces]]
+family = "Atkinson Hyperlegible Next"
+url = "https://fonts.gstatic.com/s/atkinsonhyperlegiblenext/v7/NaP4cYPdHfdVxJw0IfIP0lvYFqijb-UxCtm5_wdGscKFt4tOOfV4ZmW3C7MhtA.ttf"
+weight = 700
 
 # ---------------------------------------------------------------------------
 # Catppuccin Latte  (selected as the "Light" theme)
 # ---------------------------------------------------------------------------
 [theme.light]
-base = "light"                         # Latte is a true light flavor
 primaryColor = "#8839ef"               # Mauve  (accent)
 backgroundColor = "#eff1f5"            # Base
 secondaryBackgroundColor = "#e6e9ef"   # Mantle  (widgets / sidebar)
@@ -32,7 +48,6 @@ grayColor = "#7c7f93"                  # Overlay1
 # Catppuccin Mocha  (selected as the "Dark" theme)
 # ---------------------------------------------------------------------------
 [theme.dark]
-base = "dark"
 primaryColor = "#cba6f7"               # Mauve  (accent)
 backgroundColor = "#1e1e2e"            # Base
 secondaryBackgroundColor = "#313244"   # Surface0

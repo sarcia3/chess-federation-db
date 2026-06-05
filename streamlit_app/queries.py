@@ -26,6 +26,20 @@ def result_to_option(value):
     return RESULT_TO_OPTION.get(float(value))
 
 
+def person_options():
+    """[{person_id, name}] by full name — for searchable selectboxes.
+    """
+    return run_query(
+        """
+        SELECT 
+               person_id,
+               first_name || ' ' || last_name AS name
+        FROM 
+        persons 
+        ORDER BY last_name
+        """
+    )
+
 def player_options():
     """[{player_id, person_id, name}] by full name — for searchable selectboxes.
 
@@ -39,7 +53,7 @@ def player_options():
                p.first_name || ' ' || p.last_name AS name
         FROM players pl
         JOIN persons p USING (person_id)
-        ORDER BY name
+        ORDER BY last_name
         """
     )
 
@@ -53,7 +67,7 @@ def arbiter_options():
                p.first_name || ' ' || p.last_name AS name
         FROM arbiters a
         JOIN persons p USING (person_id)
-        ORDER BY name
+        ORDER BY last_name
         """
     )
 
@@ -93,6 +107,22 @@ def update_person(person_id, first_name, last_name, date_of_birth, gender, count
          WHERE person_id = %s
         """,
         (first_name, last_name, date_of_birth, gender, country_id, person_id),
+    )
+
+
+_PERSON_COLS = ("first_name", "last_name", "date_of_birth", "gender", "country_id")
+
+def insert_person(first_name, last_name, date_of_birth, gender, country_id):
+    """Create a new persons row. Returns affected row count."""
+    values = [first_name, last_name, date_of_birth, gender, country_id]
+    if not all(v is not None and str(v).strip() != "" for v in values):
+        raise ValueError("All fields must be filled up before inserting!")
+
+    cols = ", ".join(_PERSON_COLS)
+    placeholders = ", ".join(["%s"] * len(_PERSON_COLS))
+    return run_exec(
+        f"INSERT INTO persons ({cols}) VALUES ({placeholders})",
+        values,
     )
 
 

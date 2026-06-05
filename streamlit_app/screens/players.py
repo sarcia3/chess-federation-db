@@ -45,7 +45,7 @@ def _add_player():
             format_func=lambda p: p["name"],
         )
         submitted = st.form_submit_button(
-            "Add as player", type="primary", key="save_btn", width="stretch",
+            "Add as player", type="primary", key="save_btn_addplayer", width="stretch",
         )
 
     if submitted:

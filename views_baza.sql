@@ -53,3 +53,11 @@ JOIN players pl2 ON (pl2.player_id = p2.player_id)
 JOIN persons per2 ON (per2.person_id = pl2.person_id)
 WHERE p1.seed < p2.seed;
 
+CREATE VIEW players_with_latest_published_ratings AS (
+    SELECT p.*, ct.chess_type_id, rh.value
+    FROM (players p
+    CROSS JOIN chess_types ct)
+    LEFT OUTER JOIN rating_history rh
+        ON (p.player_id = rh.player_id AND ct.chess_type_id = rh.chess_type_id)
+    WHERE rh.date_to IS NULL --sufficient
+)
