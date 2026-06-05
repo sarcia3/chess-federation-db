@@ -1,0 +1,51 @@
+# Catppuccin theme.
+#   Light slot = Latte,  Dark slot = Mocha,  accent = Mauve.
+# Switch between them in the app: ⋮ menu -> Settings -> "Choose app theme".
+
+[theme]
+font = "sans-serif"
+
+# ---------------------------------------------------------------------------
+# Catppuccin Latte  (selected as the "Light" theme)
+# ---------------------------------------------------------------------------
+[theme.light]
+base = "light"                         # Latte is a true light flavor
+primaryColor = "#8839ef"               # Mauve  (accent)
+backgroundColor = "#eff1f5"            # Base
+secondaryBackgroundColor = "#e6e9ef"   # Mantle  (widgets / sidebar)
+textColor = "#4c4f69"                  # Text
+linkColor = "#1e66f5"                  # Blue
+borderColor = "#bcc0cc"                # Surface1
+codeBackgroundColor = "#e6e9ef"        # Mantle
+dataframeHeaderBackgroundColor = "#e6e9ef"  # Mantle
+dataframeBorderColor = "#bcc0cc"       # Surface1
+# semantic colors (alerts, st.metric deltas, etc.)
+redColor = "#d20f39"
+orangeColor = "#fe640b"                # Peach
+yellowColor = "#df8e1d"
+greenColor = "#40a02b"
+blueColor = "#1e66f5"
+violetColor = "#7287fd"                # Lavender
+grayColor = "#7c7f93"                  # Overlay1
+
+# ---------------------------------------------------------------------------
+# Catppuccin Mocha  (selected as the "Dark" theme)
+# ---------------------------------------------------------------------------
+[theme.dark]
+base = "dark"
+primaryColor = "#cba6f7"               # Mauve  (accent)
+backgroundColor = "#1e1e2e"            # Base
+secondaryBackgroundColor = "#313244"   # Surface0
+textColor = "#cdd6f4"                  # Text
+linkColor = "#89b4fa"                  # Blue
+borderColor = "#45475a"                # Surface1
+codeBackgroundColor = "#181825"        # Mantle
+dataframeHeaderBackgroundColor = "#181825"  # Mantle
+dataframeBorderColor = "#45475a"       # Surface1
+redColor = "#f38ba8"
+orangeColor = "#fab387"                # Peach
+yellowColor = "#f9e2af"
+greenColor = "#a6e3a1"
+blueColor = "#89b4fa"
+violetColor = "#b4befe"                # Lavender
+grayColor = "#7f849c"                  # Overlay1
