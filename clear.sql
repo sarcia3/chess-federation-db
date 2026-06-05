@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS "players_titles"      CASCADE;
 DROP TABLE IF EXISTS "rating_history"      CASCADE;
-DROP TABLE IF EXISTS "live_rating"         CASCADE;
+DROP TABLE IF EXISTS "live_ratings"         CASCADE;
 DROP TABLE IF EXISTS "games"               CASCADE;
 DROP TABLE IF EXISTS "tournaments"          CASCADE;
 DROP TABLE IF EXISTS "time_controls"       CASCADE;

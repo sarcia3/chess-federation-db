@@ -88,7 +88,7 @@ CREATE TABLE "games"(
     CHECK (white_player_id IS DISTINCT FROM black_player_id)
 );
 
-CREATE TABLE "live_rating"(
+CREATE TABLE "live_ratings"(
     "player_id" INTEGER,
     "chess_type_id" INTEGER,
     "value" NUMERIC(9, 2) NOT NULL,
@@ -176,9 +176,9 @@ ALTER TABLE
 ALTER TABLE
     "players_titles" ADD CONSTRAINT "players_titles_norm3_tournament_id_foreign" FOREIGN KEY("norm3_tournament_id") REFERENCES "tournaments"("tournament_id");
 ALTER TABLE
-    "live_rating" ADD CONSTRAINT "live_rating_player_id_foreign" FOREIGN KEY("player_id") REFERENCES "players"("player_id");
+    "live_ratings" ADD CONSTRAINT "live_ratings_player_id_foreign" FOREIGN KEY("player_id") REFERENCES "players"("player_id");
 ALTER TABLE
-    "live_rating" ADD CONSTRAINT "live_rating_chess_type_id_foreign" FOREIGN KEY("chess_type_id") REFERENCES "chess_types"("chess_type_id");
+    "live_ratings" ADD CONSTRAINT "live_ratings_chess_type_id_foreign" FOREIGN KEY("chess_type_id") REFERENCES "chess_types"("chess_type_id");
 ALTER TABLE
     "rating_history" ADD CONSTRAINT "rating_history_player_id_foreign" FOREIGN KEY("player_id") REFERENCES "players"("player_id");
 ALTER TABLE
@@ -366,7 +366,7 @@ BEGIN
     AND rh.date_to IS NULL
   );
 
-  UPDATE live_rating 
+  UPDATE live_ratings 
   SET value = value + FIDE_rating_change(
     white_old_rating,
     black_old_rating,
@@ -375,7 +375,7 @@ BEGIN
   )
   WHERE player_id = NEW.white_player_id AND chess_type_id = game_chess_type_id;
 
-  UPDATE live_rating 
+  UPDATE live_ratings 
   SET value = value + FIDE_rating_change(
     black_old_rating,
     white_old_rating,

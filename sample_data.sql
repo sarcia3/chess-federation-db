@@ -16,7 +16,7 @@
 --   * A realistic snapshot of the schema (countries, people, players, clubs,
 --     arbiters, titles, tournaments, time controls).
 --   * Three rating policies on chess_type: 'fide_standard', 'flat', 'unrated'.
---   * Seeded baseline ratings (rating_history + live_rating).
+--   * Seeded baseline ratings (rating_history + live_ratings).
 --   * Real games whose results AUTOMATICALLY recompute live ratings through the
 --     update_ratings_after_new_game_result trigger (Elo / FIDE formula).
 -- ============================================================================
@@ -24,7 +24,7 @@
 BEGIN;
 
 TRUNCATE
-    games, players_titles, rating_history, live_rating,
+    games, players_titles, rating_history, live_ratings,
     tournaments, time_controls, chess_types, titles,
     club_contact_data, club_memberships, clubs,
     person_contact_data, arbiters, players, persons, countries
@@ -149,7 +149,7 @@ INSERT INTO tournaments
 -- Baseline ratings.
 -- The rating trigger reads the player's "published" rating from rating_history
 -- (the row with date_to IS NULL) to compute the expected score, and accumulates
--- the change into live_rating. So we seed BOTH tables for every player who will
+-- the change into live_ratings. So we seed BOTH tables for every player who will
 -- play, in every chess type they will play.
 -- ----------------------------------------------------------------------------
 
@@ -164,7 +164,7 @@ INSERT INTO rating_history (player_id, value, chess_type_id, date_from) VALUES
                                                                             (7, 2755, 1, '2025-01-01'),
                                                                             (8, 2758, 1, '2025-01-01');
 
-INSERT INTO live_rating (player_id, chess_type_id, value) VALUES
+INSERT INTO live_ratings (player_id, chess_type_id, value) VALUES
                                                               (1, 1, 2839),
                                                               (2, 1, 2802),
                                                               (3, 1, 2805),
@@ -181,7 +181,7 @@ INSERT INTO rating_history (player_id, value, chess_type_id, date_from) VALUES
                                                                             (3, 2773, 2, '2025-01-01'),
                                                                             (5, 2780, 2, '2025-01-01');
 
-INSERT INTO live_rating (player_id, chess_type_id, value) VALUES
+INSERT INTO live_ratings (player_id, chess_type_id, value) VALUES
                                                               (1, 2, 2830),
                                                               (2, 2, 2879),
                                                               (3, 2, 2773),
@@ -190,7 +190,7 @@ INSERT INTO live_rating (player_id, chess_type_id, value) VALUES
 -- ----------------------------------------------------------------------------
 -- Games.
 -- Every row with a non-NULL result fires update_ratings_after_new_game_result,
--- which updates live_rating for both players. The last game is left unplayed
+-- which updates live_ratings for both players. The last game is left unplayed
 -- (result = NULL) to show up in the tournament_schedule view as a pending pairing.
 -- ----------------------------------------------------------------------------
 

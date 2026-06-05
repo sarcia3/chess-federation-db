@@ -7,7 +7,7 @@ from db import run_query
 # Allow-list of identifiers we permit in SELECT * (never interpolate raw input).
 BROWSABLE_TABLES = [
     "countries", "persons", "person_contact_data", "players", "arbiters",
-    "tournaments", "chess_type", "games", "live_rating", "rating_history",
+    "tournaments", "chess_types", "games", "live_ratings", "rating_history",
     "time_controls", "titles", "players_titles", "clubs", "club_memberships",
     "club_contact_data",
 ]
