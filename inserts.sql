@@ -168,7 +168,7 @@ INSERT INTO countries(name, continent) VALUES
   ('Sierra Leone', 'Africa'),
   ('Togo', 'Africa'),
   ('Australia', 'Australia'),
-  ('New Zeland', 'Australia'),
+  ('New Zealand', 'Australia'),
   ('Fiji', 'Australia'),
   ('Papua New Guinea', 'Australia')
 ;
@@ -186,10 +186,10 @@ INSERT INTO titles (short_name, full_name) VALUES
 
 -- czy k factor to cecha partii czy gracza? wzielam takie z internetu
 INSERT INTO chess_types (name, total_time_from, total_time_to, rating_policy, k_factor) VALUES 
-   ('Bullet', '1 second', '2 minutes 59 seconds', 'flat', 40),
-   ('Blitz', '3 minutes', '9 minutes 59 seconds', 'flat', 20),
-   ('Classical', '60 minutes', NULL, 'fide_standard', NULL),
-   ('Rapid', '10 minutes', '59 minutes 59 seconds', 'flat', 20),
+   ('Bullet', '1 second', '2 minutes 59 seconds', 'rated', 40),
+   ('Blitz', '3 minutes', '9 minutes 59 seconds', 'rated', 20),
+   ('Classical', '60 minutes', NULL, 'rated', 5),
+   ('Rapid', '10 minutes', '59 minutes 59 seconds', 'rated', 10),
    ('Casual', NULL, NULL, 'unrated', NULL)
 ;
 
@@ -347,11 +347,12 @@ INSERT INTO time_controls (starting_time, increment) VALUES
 ;   
 
 INSERT INTO tournaments (chess_type_id, city, street_address, country_id, name, main_arbiter, time_control_id, date_from, date_to) VALUES 
-   ((SELECT chess_type_id FROM chess_types WHERE name = 'Classical'), 'Warsaw', 'Aleje Jerozolimskie 1', (SELECT country_id FROM countries WHERE name = 'Poland'), 'Warsaw Grandmaster Open 2026', (SELECT arbiter_id FROM arbiters LIMIT 1), (SELECT time_control_id FROM time_controls LIMIT 1), '2026-07-01', '2026-07-10'),
-   ((SELECT chess_type_id FROM chess_types WHERE name = 'Rapid'), 'Krakow', 'Rynek Glowny 1', (SELECT country_id FROM countries WHERE name = 'Poland'), 'Krakow Rapid Masters', (SELECT arbiter_id FROM arbiters LIMIT 1), (SELECT time_control_id FROM time_controls LIMIT 1), '2026-08-15', '2026-08-17'),
-   ((SELECT chess_type_id FROM chess_types WHERE name = 'Blitz'), 'Paris', 'Rue de Chess 12', (SELECT country_id FROM countries WHERE name = 'France'), 'Paris Blitz Challenge', (SELECT arbiter_id FROM arbiters LIMIT 1), (SELECT time_control_id FROM time_controls LIMIT 1), '2026-09-05', '2026-09-05'),
-   ((SELECT chess_type_id FROM chess_types WHERE name = 'Bullet'), 'New York', 'Broadway 100', (SELECT country_id FROM countries WHERE name = 'United States'), 'New York Bullet Cup', (SELECT arbiter_id FROM arbiters LIMIT 1), (SELECT time_control_id FROM time_controls LIMIT 1), '2026-10-03', '2026-10-03'),
-   ((SELECT chess_type_id FROM chess_types WHERE name = 'Classical'), 'Oslo', 'Karl Johans gate 15', (SELECT country_id FROM countries WHERE name = 'Norway'), 'Nordic Invitational', (SELECT arbiter_id FROM arbiters LIMIT 1), (SELECT time_control_id FROM time_controls LIMIT 1), '2026-11-01', '2026-11-08')
+   ((SELECT chess_type_id FROM chess_types WHERE name = 'Classical'), 'Warsaw', 'Aleje Jerozolimskie 1', (SELECT country_id FROM countries WHERE name = 'Poland'), 'Warsaw Grandmaster Open 2026', 3, (SELECT time_control_id FROM time_controls LIMIT 1), '2026-07-01', '2026-07-10'),
+   ((SELECT chess_type_id FROM chess_types WHERE name = 'Rapid'), 'Krakow', 'Rynek Glowny 1', (SELECT country_id FROM countries WHERE name = 'Poland'), 'Krakow Rapid Masters', 1, (SELECT time_control_id FROM time_controls LIMIT 1), '2026-08-15', '2026-08-17'),
+   ((SELECT chess_type_id FROM chess_types WHERE name = 'Blitz'), 'Paris', 'Rue de Chess 12', (SELECT country_id FROM countries WHERE name = 'France'), 'Paris Blitz Challenge', 2, (SELECT time_control_id FROM time_controls LIMIT 1), '2026-09-05', '2026-09-05'),
+   ((SELECT chess_type_id FROM chess_types WHERE name = 'Bullet'), 'New York', 'Broadway 100', (SELECT country_id FROM countries WHERE name = 'United States'), 'New York Bullet Cup', 4, (SELECT time_control_id FROM time_controls LIMIT 1), '2026-10-03', '2026-10-03'),
+   ((SELECT chess_type_id FROM chess_types WHERE name = 'Classical'), 'Oslo', 'Karl Johans gate 15', (SELECT country_id FROM countries WHERE name = 'Norway'), 'Nordic Invitational', 2, (SELECT time_control_id FROM time_controls LIMIT 1), '2026-11-01', '2026-11-08'),
+   ((SELECT chess_type_id FROM chess_types WHERE name = 'Classical'), 'Toronto', 'High Street 3', (SELECT country_id FROM countries WHERE name = 'Canada'), 'Toronto Chess Championship', 4, (SELECT time_control_id FROM time_controls LIMIT 1), '2026-07-01', '2026-07-10')
 ;
 
 INSERT INTO live_ratings (player_id, chess_type_id, value) VALUES
@@ -422,6 +423,93 @@ SELECT player_id, value::INTEGER, chess_type_id, DATE '2026-01-01', NULL
 FROM live_ratings
 ON CONFLICT DO NOTHING;
 
+INSERT INTO tournament_players (tournament_id, player_id)
+SELECT t.tournament_id, pl.player_id
+FROM tournaments t JOIN players pl ON TRUE
+JOIN persons p USING(person_id)
+WHERE t.name = 'Warsaw Grandmaster Open 2026'
+  AND (p.first_name, p.last_name) IN (
+    ('Magnus','Carlsen'),
+    ('Fabiano','Caruana'),
+    ('Hikaru','Nakamura'),
+    ('Jan-Krzysztof','Duda'),
+    ('Anish','Giri'),
+    ('Arjun','Erigaisi')
+  )
+ON CONFLICT DO NOTHING;
+
+INSERT INTO tournament_players (tournament_id, player_id)
+SELECT t.tournament_id, pl.player_id
+FROM tournaments t JOIN players pl ON TRUE
+JOIN persons p USING(person_id)
+WHERE t.name = 'Krakow Rapid Masters'
+  AND (p.first_name, p.last_name) IN (
+    ('Nodirbek','Abdusattorov'),
+    ('Vincent','Keymer'),
+    ('Wesley','So'),
+    ('Wei','Yi'),
+    ('Alireza','Firouzja'),
+    ('Hans','Niemann')
+  )
+ON CONFLICT DO NOTHING;
+
+INSERT INTO tournament_players (tournament_id, player_id)
+SELECT t.tournament_id, pl.player_id
+FROM tournaments t JOIN players pl ON TRUE
+JOIN persons p USING(person_id)
+WHERE t.name = 'Paris Blitz Challenge'
+  AND (p.first_name, p.last_name) IN (
+    ('Ian','Nepomniachtchi'),
+    ('Levon','Aroniam'),
+    ('Maxime','Vachier-Lagrave'),
+    ('Richard','Rapport'),
+    ('Shakhriyar','Mamedyarov'),
+    ('Nijat','Abasov')
+  )
+ON CONFLICT DO NOTHING;
+
+INSERT INTO tournament_players (tournament_id, player_id)
+SELECT t.tournament_id, pl.player_id
+FROM tournaments t JOIN players pl ON TRUE
+JOIN persons p USING(person_id)
+WHERE t.name = 'New York Bullet Cup'
+  AND (p.first_name, p.last_name) IN (
+    ('Hikaru','Nakamura'),
+    ('Hans','Niemann'),
+    ('Fabiano','Caruana'),
+    ('Wesley','So')
+  )
+ON CONFLICT DO NOTHING;
+
+INSERT INTO tournament_players (tournament_id, player_id)
+SELECT t.tournament_id, pl.player_id
+FROM tournaments t JOIN players pl ON TRUE
+JOIN persons p USING(person_id)
+WHERE t.name = 'Nordic Invitational'
+  AND (p.first_name, p.last_name) IN (
+    ('Magnus','Carlsen'),
+    ('Vincent','Keymer'),
+    ('Nodirbek','Abdusattorov'),
+    ('Jan-Krzysztof','Duda'),
+    ('Anish','Giri'),
+    ('Wei','Yi')
+  )
+ON CONFLICT DO NOTHING;
+
+INSERT INTO tournament_players (tournament_id, player_id)
+SELECT t.tournament_id, pl.player_id
+FROM tournaments t JOIN players pl ON TRUE
+JOIN persons p USING(person_id)
+WHERE t.name = 'Toronto Chess Championship'
+  AND (p.first_name, p.last_name) IN (
+    ('Magnus','Carlsen'),
+    ('Vincent','Keymer'),
+    ('Nodirbek','Abdusattorov'),
+    ('Jan-Krzysztof','Duda'),
+    ('Anish','Giri'),
+    ('Wei','Yi')
+  )
+ON CONFLICT DO NOTHING;
 
 --przykladowy turniej do testowania generate_round_robin_games
 INSERT INTO tournament_players (tournament_id, player_id)
