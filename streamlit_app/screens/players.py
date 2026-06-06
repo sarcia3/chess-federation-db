@@ -32,7 +32,7 @@ def _add_player():
 
     candidates = non_player_persons()
     if not candidates:
-        st.info("Every person in the database is already a player. Add the person first.")
+        st.info("Every person in the database is already a player.")
         return
 
     with st.form("add_player_form", clear_on_submit=True):
