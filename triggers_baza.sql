@@ -41,3 +41,47 @@ FOR EACH ROW EXECUTE FUNCTION close_previous_contact();
 CREATE RULE dont_delete_games AS
 ON DELETE TO games DO INSTEAD NOTHING;
 
+
+--Closing old country record in case of country change
+
+CREATE OR REPLACE FUNCTION update_person_country_history()
+RETURNS TRIGGER AS
+$$
+BEGIN
+   IF OLD.country_id IS DISTINCT FROM NEW.country_id THEN
+      UPDATE person_country_history
+      SET date_to = CURRENT_DATE
+      WHERE person_id = OLD.person_id AND date_to IS NULL;
+      
+      INSERT INTO person_country_history (person_id, country_id, date_from, date_to)
+      VALUES(NEW.person_id, NEW.country_id, CURRENT_DATE, NULL);
+    
+   END IF;
+   RETURN NEW;
+END;      
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigg_update_person_country_history 
+AFTER UPDATE OF country_id ON persons
+FOR EACH ROW EXECUTE FUNCTION update_person_country_history();
+
+
+--- Inserting the first country of a person to country_person_history
+
+CREATE OR REPLACE FUNCTION person_first_country()
+RETURNS TRIGGER AS
+$$
+BEGIN
+   INSERT INTO person_country_history (person_id, country_id, date_from, date_to)
+   VALUES (NEW.person_id, NEW.country_id, CURRENT_DATE, NULL);
+   RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trigg_person_first_country
+AFTER INSERT ON persons
+FOR EACH ROW EXECUTE FUNCTION person_first_country();
+
+

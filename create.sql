@@ -149,6 +149,28 @@ CREATE TABLE "club_contact_data"(
     PRIMARY KEY("club_id", "timestamp_from")
 );
 
+
+CREATE TABLE "tournament_players"
+(
+    "tournament_id" INTEGER,
+    "player_id" INTEGER,
+    PRIMARY KEY("tournament_id", "player_id")
+);
+
+
+CREATE TABLE "person_country_history"
+(
+    "person_id" INTEGER NOT NULL,
+    "country_id" INTEGER NOT NULL,
+    "date_from" DATE NOT NULL,
+    "date_to" DATE,
+    FOREIGN KEY (person_id) REFERENCES persons(person_id),
+    FOREIGN KEY (country_id) REFERENCES countries(country_id),
+    CHECK (date_to IS NULL OR date_from <= date_to),
+    PRIMARY KEY("person_id", "date_from")
+);
+
+
 ALTER TABLE
     "person_contact_data" ADD CONSTRAINT "person_contact_data_person_id_foreign" FOREIGN KEY("person_id") REFERENCES "persons"("person_id");
 ALTER TABLE
