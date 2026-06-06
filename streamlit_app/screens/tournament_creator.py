@@ -1,12 +1,10 @@
 import streamlit as st
 
 from queries import *
-from components import person_panel
 
 def new_tournament():
     st.subheader("Create a new tournament")
-    # clear_on_submit wipes every field after any submit button, so Clear (and a
-    # successful Add) reset the form without manually resetting widget state.
+
     with st.form("new_tournament_form", clear_on_submit=True):
         tournament_name = st.text_input("Tournament name")
         country = st.selectbox(
@@ -24,13 +22,14 @@ def new_tournament():
         date_from = st.date_input("Date from")
         date_to = st.date_input("Date to", value=date_from, min_value=date_from)
         main_arbiter = (
-            st.selectbox("Arbiter", arbiter_options(), index=None, format_func=lambda p: p["name"], key="white"))
+            st.selectbox("Arbiter", arbiter_options(), index=None, format_func=lambda p: f'[id: {str(p["arbiter_id"])}] {p["name"]}', key="white"))
 
         time_control = st.selectbox(
             "Time control" ,
             time_control_options(),
             index=None,
             format_func=lambda t: f'{t["starting_time"]} min + {t["increment"]} sec/move')
+        #aktualnie po prostu pare presetow, nie mam sily pisac slidera
 
         save_col, clear_col = st.columns(2)
         if save_col.form_submit_button("Add", type="primary", key="save_btn", width="stretch"):

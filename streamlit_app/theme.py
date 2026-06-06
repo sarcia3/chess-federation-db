@@ -1,4 +1,8 @@
-"""Bridge between the Catppuccin palette in .streamlit/config.toml and our CSS.
+"""
+stuprocentowy LLM, jest tu tylko po to, żeby aplikacja używała palety kolorów, którą lubie
+
+
+Bridge between the Catppuccin palette in .streamlit/config.toml and our CSS.
 
 config.toml is the single source of truth for the hex values. This module reads
 the per-flavor semantic colors out of it, exposes them to the page as CSS custom

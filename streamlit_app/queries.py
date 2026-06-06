@@ -1,18 +1,10 @@
-"""Shared database queries and result-value helpers used by several screens.
-
-Keeping these in one place avoids duplicating SQL across the screen modules.
-All of them go through the helpers in db.py, so there is no hidden ORM.
+"""
+Tutaj wrzucam query
 """
 
 from db import run_query, run_exec
 
-# result is the WHITE player's score: 1.0 white win, 0.5 draw, 0.0 black win.
-#
-# In the grid, the cell holds a RAW option word ("white"/"draw"/"black"); the
-# SelectboxColumn's format_func displays it as the score ("1-0" ...). So the
-# cell shows a clean "1-0", while the underlying value is the word — which is
-# what may let you filter the dropdown by typing "white". The database column
-# games.result still stores the NUMERIC score (1.0 / 0.5 / 0.0).
+# hacky rozwiazanie dla add_game. --todo przenies to tam
 RESULT_OPTIONS = ["white 1-0", "dra /", "black 0-1"]                       # raw cell values
 OPTION_DISPLAY = {"white 1-0": "1-0", "dra /": "½-½", "black 0-1": "0-1"}   # format_func output
 OPTION_TO_RESULT = {"white 1-0": 1.0, "dra /": 0.5, "black 0-1": 0.0}       # raw word -> DB number
@@ -27,8 +19,6 @@ def result_to_option(value):
 
 
 def person_options():
-    """[{person_id, name}] by full name — for searchable selectboxes.
-    """
     return run_query(
         """
         SELECT 
@@ -41,11 +31,6 @@ def person_options():
     )
 
 def player_options():
-    """[{player_id, person_id, name}] by full name — for searchable selectboxes.
-
-    person_id rides along so a player screen can hand it straight to the shared
-    person editor (all of a player's editable data lives on persons).
-    """
     return run_query(
         """
         SELECT pl.player_id,
@@ -58,8 +43,6 @@ def player_options():
     )
 
 def arbiter_options():
-    """[{arbiter_id, person_id, name}] by full name — for searchable selectboxes.
-    """
     return run_query(
         """
         SELECT a.arbiter_id,
@@ -79,11 +62,9 @@ def time_control_options():
     EXTRACT('SECONDS' FROM increment)::INT AS increment 
     FROM time_controls; 
     """)
-# maybe I shouldn't add such a simple query, but I like the separation
-
+# zakladam, ze sumaryczne jest mniejsze niz dni
 
 def person_info(person_id):
-    """One person's editable fields (+ country name for display)."""
     return run_query(
         """
         SELECT pe.person_id, pe.first_name, pe.last_name,
@@ -96,9 +77,19 @@ def person_info(person_id):
         (person_id,),
     )
 
-
+def club_options():
+    return run_query("""
+        SELECT c.club_id,
+               c.name  AS "Club name",
+               co.name AS "Country name",
+               COUNT(cm.player_id) AS "Players"
+        FROM clubs c
+        JOIN countries co ON co.country_id = c.country_id
+        LEFT JOIN club_memberships cm ON cm.club_id = c.club_id
+        GROUP BY c.club_id, c.name, co.name
+        ORDER BY c.name
+    """)
 def update_person(person_id, first_name, last_name, date_of_birth, gender, country_id):
-    """Persist edits to one persons row. Returns affected row count."""
     return run_exec(
         """
         UPDATE persons
@@ -113,7 +104,6 @@ def update_person(person_id, first_name, last_name, date_of_birth, gender, count
 _PERSON_COLS = ("first_name", "last_name", "date_of_birth", "gender", "country_id")
 
 def insert_person(first_name, last_name, date_of_birth, gender, country_id):
-    """Create a new persons row. Returns affected row count."""
     values = [first_name, last_name, date_of_birth, gender, country_id]
     if not all(v is not None and str(v).strip() != "" for v in values):
         raise ValueError("All fields must be filled up before inserting!")
@@ -125,25 +115,19 @@ def insert_person(first_name, last_name, date_of_birth, gender, country_id):
         values,
     )
 
-
 def country_options():
     """[{country_id, name}] for a country picker, alphabetical."""
     return run_query("SELECT country_id, name FROM countries ORDER BY name")
 
 
 def non_player_persons():
-    """Persons not yet registered as players — candidates for 'Add player'.
-
-    A player must already exist as a person, so this is the pick-list; people
-    already on the players roster are excluded.
-    """
     return run_query(
         """
         SELECT pe.person_id,
                pe.first_name || ' ' || pe.last_name AS name
         FROM persons pe
         WHERE NOT EXISTS (
-            SELECT 1 FROM players pl WHERE pl.person_id = pe.person_id
+            SELECT pl.player_id FROM players pl WHERE pl.person_id = pe.person_id
         )
         ORDER BY name
         """
@@ -172,7 +156,7 @@ def player_info(player_id):
    """, str(player_id))
 
 def tournament_options():
-    return run_query("SELECT tournament_id, name FROM tournaments ORDER BY name")
+    return run_query("SELECT * FROM tournaments ORDER BY name")
 
 
 def tournament_info(tournament_id):
@@ -187,7 +171,6 @@ def tournament_info(tournament_id):
         """,
         (tournament_id,),
     )
-
 
 _TOURNAMENT_COLS = (
     "name", "city", "street_address", "country_id", "chess_type_id",
@@ -219,6 +202,31 @@ def update_tournament(tournament_id, name, city, street_address, country_id,
          main_arbiter, time_control_id, date_from, date_to, tournament_id),
     )
 
+def tournament_players_raw(tournament_id):
+   return (
+       run_query(
+           """
+           SELECT * FROM tournament_players WHERE tournament_id = %s
+           """,
+           (str(tournament_id),))
+   )
+
+
+def tournament_players_full(tournament_id, chess_type_id):
+    return run_query(
+            """
+            SELECT *, live_ratings.value as live, players.value as pub
+            FROM (tournament_players 
+            LEFT OUTER JOIN players_with_latest_published_ratings players USING (player_id)) JOIN persons
+            ON players.person_id = persons.person_id
+            JOIN live_ratings ON live_ratings.player_id = players.player_id
+            JOIN countries ON countries.country_id = persons.country_id
+            WHERE live_ratings.chess_type_id = %s AND live_ratings.chess_type_id = players.chess_type_id
+            AND tournament_id = %s
+            ORDER BY live_ratings.value DESC, persons.last_name
+            """,
+            (str(chess_type_id),str(tournament_id)))
+
 
 def round_games(tournament_id, round_number):
     """Pairings (with player names) for one tournament round, ordered stably."""
@@ -238,3 +246,14 @@ def round_games(tournament_id, round_number):
         """,
         (tournament_id, round_number),
     )
+
+def ratings_by_chess_type(chess_type_id):
+    return run_query("""
+        SELECT persons.*, players.player_id, countries.name AS "country", live_ratings.value AS live, players.value AS pub
+        FROM persons JOIN players_with_latest_published_ratings players ON players.person_id = persons.person_id
+        JOIN live_ratings ON live_ratings.player_id = players.player_id
+        JOIN countries ON countries.country_id = persons.country_id
+        WHERE live_ratings.chess_type_id = %s AND live_ratings.chess_type_id = players.chess_type_id
+        AND COALESCE(live_ratings.value, players.value) IS NOT NULL
+        ORDER BY live_ratings.value DESC, persons.last_name
+        """, str(chess_type_id))

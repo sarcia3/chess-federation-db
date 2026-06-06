@@ -14,6 +14,8 @@ DROP TABLE IF EXISTS "countries"           CASCADE;
 DROP TABLE IF EXISTS "clubs"               CASCADE;
 DROP TABLE IF EXISTS "club_memberships"    CASCADE;
 DROP TABLE IF EXISTS "club_contact_data"   CASCADE;
+DROP TABLE IF EXISTS "tournament_players"   CASCADE;
+DROP TABLE IF EXISTS "person_country_history"   CASCADE;
 
 DROP TYPE  IF EXISTS GENDER    CASCADE;
 DROP TYPE  IF EXISTS CONTINENT CASCADE;

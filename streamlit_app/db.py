@@ -1,15 +1,4 @@
-"""Database access layer. (created by an LLM)
-
-Reads connection settings from the project's existing
-"CRUD GUI config.conf" (the connection block at the top of the file) and
-exposes three tiny helpers used by the rest of the app:
-
-    run_query(sql, params)  -> list of dict rows  (SELECT)
-    run_exec(sql, params)   -> affected row count  (INSERT/UPDATE/DELETE)
-    run_many(statements)    -> None                (several writes, one transaction)
-
-Keeping all SQL in the calling code (or in the Postgres functions you already
-wrote) means there is no hidden ORM magic to explain at the defense.
+"""Database access layer. (entirely created by an LLM)
 """
 
 import os
@@ -18,7 +7,7 @@ import psycopg2
 import psycopg2.extras
 import streamlit as st
 
-CONFIG_NAME = "CRUD GUI config.conf"
+CONFIG_NAME = "config.conf"
 
 
 def _find_config():

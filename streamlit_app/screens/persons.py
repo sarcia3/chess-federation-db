@@ -15,16 +15,14 @@ def render():
 def _browse():
     persons = person_options()
     if not persons :
+        #to na prawde nie jest potrzebne. Będą jacyś ludzie w bazie zawsze, ale już nie usuwam bo po co.
         st.info("No persons yet.")
         return
 
-    # Picker is locked while editing so the record can't change under the form.
     person = st.selectbox(
         "Chose a person", persons,
         format_func=lambda p: f'[id: {str(p["person_id"])}] {p["name"]}',
         disabled=is_editing(),
     )
 
-    # A player's editable data is all on its person, so delegate to the shared
-    # editor. A persons screen would call person_panel() the exact same way.
     person_panel(person["person_id"])

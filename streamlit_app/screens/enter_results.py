@@ -1,5 +1,3 @@
-"""Screen: enter a whole round's results in an editable grid."""
-
 from typing import cast
 
 import streamlit as st
@@ -20,18 +18,21 @@ def render():
 
     tournaments = tournament_options()
     if not tournaments:
-        st.info("No tournaments yet — add one first.")
+        st.info("No tournaments yet.")
         return
 
     tour = st.selectbox("Tournament", tournaments, format_func=lambda t: t["name"])
+    #todo id turnieju nie ma sensu wyswielac tutaj, ale chcemy rozrozniac rozne. Dodaj unique na tournament name
+    #Jesli cos jest ktoras edycja to niech daje w nazwie rok edycji czy cos. Mozemy wymagac unique
 
     rounds = run_query(
         "SELECT DISTINCT round_number FROM games WHERE tournament_id = %s "
         "ORDER BY round_number",
-        (tour["tournament_id"],),
+        (tour["tournament_id"],), # tu smieszny przecinek aby python zinteerpretowal to jako tuple
     )
+
     if not rounds:
-        st.info("This tournament has no games/pairings yet. Add them on 'Add game'.")
+        st.info("This tournament has no games/pairings yet.")
         return
 
     rnd = st.selectbox(
@@ -39,6 +40,8 @@ def render():
     )
 
     games = round_games(tour["tournament_id"], rnd)
+
+    #LLM zrobil to aby dalo sie tak milo wpisywac prefixy literek. Przez to ze jest to framework webowy trzeba entery/strzalki
 
     # One editable row per board. Board / White / Black are read-only; only the
     # Result dropdown can change. game_id rides along (hidden) so each row maps
@@ -65,7 +68,7 @@ def render():
             rows,
             hide_index=True,
             width='content',
-            num_rows="fixed",        # can't add/remove boards, only edit results
+            num_rows="fixed",
             disabled=["game_id", "Board", "White", "Black"],
             column_config={
                 "game_id": None,     # hide the id column
@@ -81,7 +84,6 @@ def render():
         ))
 
     if st.button("Save round", type="primary"):
-        # A blank Result maps to None -> stored as NULL (lets you clear a result).
         statements = [
             (
                 "UPDATE games SET result = %s WHERE game_id = %s",

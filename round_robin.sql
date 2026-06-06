@@ -13,16 +13,22 @@ DECLARE
    white_id int;
    black_id int;
    tmp int;
-   start_date int;
+   start_date date;
 BEGIN
-    SELECT ARRAY_AGG(player_id ORDER BY player_id) INTO players_arr
-    FROM tournament_players WHERE tournament_id = p_tournament_id;
+    --
+    IF (SELECT COUNT("game_id") FROM games WHERE tournament_id = p_tournament_id) != 0 THEN
+        RAISE EXCEPTION 'Tournament already has games.';
+    END IF;
+    --check dodany przeze mnie ~sara
+
+    SELECT ARRAY_AGG(tp.player_id ORDER BY tp.player_id) INTO players_arr
+    FROM tournament_players tp WHERE tp.tournament_id = p_tournament_id;
     IF players_arr IS NULL OR array_length(players_arr, 1) < 2 THEN 
        RAISE EXCEPTION 'Tournament must have at least 2 players';
     END IF;
 
-    SELECT date_from INTO start_date
-    FROM tournaments WHERE tournament_id = p_tournament_id;
+    SELECT t.date_from INTO start_date
+    FROM tournaments t WHERE t.tournament_id = p_tournament_id;
     IF start_date IS NULL THEN
        RAISE EXCEPTION 'Tournament % does not exist', p_tournament_id;
     END IF;
@@ -37,13 +43,13 @@ BEGIN
     half_n := n / 2;
 
     -- to not generate the same thing twice
-    DELETE FROM games WHERE tournament_id = p_tournament_id AND result IS NULL;
+    DELETE FROM games g WHERE g.tournament_id = p_tournament_id AND g.result IS NULL;
     FOR r IN 1..rounds LOOP
         FOR i IN 1..half_n LOOP
            p1 := players_arr[i];
            p2 := players_arr[n - i + 1];
+           
            IF p1 IS NOT NULL AND p2 IS NOT NULL THEN
-
             -- changing the colour beetween rounds
             IF r % 2 = 1 THEN
               white_id := p1;

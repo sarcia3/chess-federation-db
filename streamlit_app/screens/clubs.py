@@ -2,24 +2,13 @@ import streamlit as st
 
 import queries
 from components import person_panel
+from queries import *
 
 
 def render():
-    clubs = queries.run_query("""
-        SELECT c.club_id,
-               c.name  AS "Club name",
-               co.name AS "Country name",
-               COUNT(cm.player_id) AS "Players"
-        FROM clubs c
-        JOIN countries co ON co.country_id = c.country_id
-        LEFT JOIN club_memberships cm ON cm.club_id = c.club_id
-        GROUP BY c.club_id, c.name, co.name
-        ORDER BY c.name
-    """)
-
     st.subheader("Clubs")
-    # Selectable rows: clicking one reruns and reports its position in selection.
-    # club_id is fetched but not shown (column_order omits it).
+    clubs = club_options()
+
     event = st.dataframe(
         clubs,
         hide_index=True,
@@ -35,7 +24,8 @@ def render():
 
 
 def _show_club_players(club):
-    players = queries.run_query("""
+    # powinnam to przeniesc do queries.py, ale jestem zbyt zmęczona ale ig --todo przenies
+    club_players = queries.run_query("""
         SELECT pe.person_id,
                pe.first_name || ' ' || pe.last_name AS "Player"
         FROM club_memberships cm
@@ -46,13 +36,12 @@ def _show_club_players(club):
     """, (club["club_id"],))
 
     st.subheader(f"Players of {club['Club name']}")
-    if not players:
+    if not club_players:
         st.info("This club has no members.")
         return
 
-    # Selectable like the clubs table; person_id is fetched but hidden.
     event = st.dataframe(
-        players,
+        club_players,
         hide_index=True,
         on_select="rerun",
         selection_mode="single-row",
@@ -62,4 +51,34 @@ def _show_club_players(club):
 
     selected = event.selection["rows"]
     if selected:
-        person_panel(players[selected[0]]["person_id"])
+        person_panel(club_players[selected[0]]["person_id"])
+    else:
+        with st.popover("Add a player"):
+            candidates = player_options()
+            member_ids = {m["person_id"] for m in club_players}
+            candidates = [c for c in candidates if c["person_id"] not in member_ids]
+
+            if not candidates:
+                st.info(f"Every player is already in the club {club["Club name"]}.")
+                return
+
+            with st.form("add_player_form", clear_on_submit=True):
+
+                player = st.selectbox(
+                    "Chose a player", candidates,
+                    format_func=lambda p: f'[id: {str(p["player_id"])}] {p["name"]}',
+                )
+
+                submitted = st.form_submit_button(
+                    f"Add as {club["Club name"]} member", type="primary", key="save_btn_addplayer", width="stretch",
+                )
+            if submitted:
+                if player is None:
+                    st.error("Pick a player first.")
+                else:
+                    try:
+                        queries.run_exec("""
+                        INSERT INTO club_memberships VALUES(%s, %s)""", (player["player_id"], club["club_id"]))
+                        st.success(f'Added {player["name"]} as {club["Club name"]} member.')
+                    except Exception as e:
+                        st.error(f"Adding player failed: {e}")
