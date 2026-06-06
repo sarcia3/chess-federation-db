@@ -346,8 +346,8 @@ BEGIN
             )+18 <= EXTRACT('year' FROM date_played) THEN RETURN 40;
         END IF;
         RETURN 20;
+    ELSE RAISE NOTICE 'Unsupported rating policy. Returning K-factor = 0';
     END CASE;
-    RAISE NOTICE 'Unsupported rating policy. Returning K-factor = 0';
 END;
 $$ LANGUAGE plpgsql;
 
@@ -358,13 +358,58 @@ DECLARE
   black_old_rating INTEGER;
   game_chess_type_id INTEGER;
 BEGIN
+    --zmiana graczy, to tez by sie przydalo, ale przynajmniej GUI tego nie udostepnia na ten moment
   IF NEW.result IS NULL THEN
     RETURN NEW;
   END IF;
-  IF TG_OP = 'UPDATE' AND OLD.result IS NOT DISTINCT FROM NEW.result THEN
+  IF OLD.result IS NOT DISTINCT FROM NEW.result THEN
     RETURN NEW;
   END IF;
-  --TODO add changing the result
+  IF OLD.result IS NOT NULL THEN
+      --to jest bardzo brzydkie dwa razy ten sam kod ale jest 21 i wole zeby bylo brzydko dzialajace niz w ogole brak
+      --cofamy to co dodalismy
+      game_chess_type_id = (
+          SELECT t.chess_type_id
+          FROM games g JOIN tournaments t USING(tournament_id)
+          WHERE g.game_id = NEW.game_id);
+
+      white_old_rating = (
+          SELECT value
+          FROM rating_history rh
+          WHERE
+              rh.player_id = NEW.white_player_id
+            AND rh.chess_type_id = game_chess_type_id
+            AND rh.date_to IS NULL
+      );
+
+      black_old_rating = (
+          SELECT value
+          FROM rating_history rh
+          WHERE
+              rh.player_id = NEW.black_player_id
+            AND rh.chess_type_id = game_chess_type_id
+            AND rh.date_to IS NULL
+      );
+
+      UPDATE live_ratings
+      SET value = value - FIDE_rating_change(
+              white_old_rating,
+              black_old_rating,
+              get_K_factor(NEW.white_player_id, game_chess_type_id, OLD.date),
+              OLD.result
+                          )
+      WHERE player_id = NEW.white_player_id AND chess_type_id = game_chess_type_id;
+
+      UPDATE live_ratings
+      SET value = value - FIDE_rating_change(
+              black_old_rating,
+              white_old_rating,
+              get_K_factor(NEW.black_player_id, game_chess_type_id, OLD.date),
+              1-OLD.result
+                          )
+      WHERE player_id = NEW.black_player_id AND chess_type_id = game_chess_type_id;
+  END IF;
+
   game_chess_type_id = (
     SELECT t.chess_type_id 
     FROM games g JOIN tournaments t USING(tournament_id) 
