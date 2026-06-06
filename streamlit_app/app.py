@@ -2,7 +2,7 @@
 Główny plik frontedu bazy.
 Duża część z tego była wygenerowana z użyciem LLMa, bo nie mam doświadczenia w pisaniu frontendu.
 Jednak od momentu gdy zaczęłam rozumieć jak to mniej więcej działa, używałam go coraz mniej i
-kod pisałam w większości sama. Wszystkie SQLowe rzeczy pisałam sama.
+kod pisałam w większości sama.
 
 Rozumiem cały kod i jestem w stanie każdą linijkę wyjaśnić na obronie.
 """
@@ -15,7 +15,7 @@ from theme import load_styles
 
 from screens import (
     landing_page, enter_results, pairings, debug_browse, players, clubs,
-    tournament_creator, rating_lists, rating_history, persons, tournament_players,
+    tournament_creator, rating_lists, rating_history, persons, tournament_players, arbiters,
 )
 
 load_styles()
@@ -34,6 +34,7 @@ sections = {
     "Registry": [
         st.Page(persons.render, title="Persons", url_path="persons"),
         st.Page(players.render, title="Players", url_path="players"),
+        st.Page(arbiters.render, title="Arbiters", url_path="arbiters"),
         st.Page(clubs.render, title="Clubs", url_path="clubs"),
     ],
     "Ratings": [

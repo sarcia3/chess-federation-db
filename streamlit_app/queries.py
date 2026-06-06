@@ -133,10 +133,24 @@ def non_player_persons():
         """
     )
 
+def non_arbiter_persons():
+    return run_query(
+        """
+        SELECT pe.person_id,
+               pe.first_name || ' ' || pe.last_name AS name
+        FROM persons pe
+        WHERE NOT EXISTS (
+            SELECT a.arbiter_id FROM arbiters a WHERE a.person_id = pe.person_id
+        )
+        ORDER BY name
+        """
+    )
 
 def add_player(person_id):
-    """Register an existing person as a player."""
     return run_exec("INSERT INTO players (person_id) VALUES (%s)", (person_id,))
+
+def add_arbiter(person_id):
+    return run_exec("INSERT INTO arbiters (person_id) VALUES (%s)", (person_id,))
 
 def chess_type_options():
     return run_query("SELECT chess_type_id, name FROM chess_types ORDER BY name")
