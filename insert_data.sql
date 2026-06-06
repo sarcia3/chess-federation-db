@@ -186,10 +186,10 @@ INSERT INTO titles (short_name, full_name) VALUES
 
 -- czy k factor to cecha partii czy gracza? wzielam takie z internetu
 INSERT INTO chess_types (name, total_time_from, total_time_to, rating_policy, k_factor) VALUES 
-   ('Bullet', '1 second', '2 minutes 59 seconds', 'rated', 40),
-   ('Blitz', '3 minutes', '9 minutes 59 seconds', 'rated', 20),
-   ('Classical', '60 minutes', NULL, 'rated', 5),
-   ('Rapid', '10 minutes', '59 minutes 59 seconds', 'rated', 10),
+   ('Bullet', '1 second', '2 minutes 59 seconds', 'flat', 5),
+   ('Blitz', '3 minutes', '9 minutes 59 seconds', 'flat', 20),
+   ('Classical', '60 minutes', NULL, 'fide_standard', NULL),
+   ('Rapid', '10 minutes', '59 minutes 59 seconds', 'flat', 20),
    ('Casual', NULL, NULL, 'unrated', NULL)
 ;
 

@@ -3,6 +3,7 @@ import streamlit as st
 
 from queries import *
 
+
 def render():
     st.title("Tournament Players")
     starting_list, results= st.tabs(["Starting list", "Results"])
@@ -10,13 +11,24 @@ def render():
     with starting_list:
         _starting_list()
     with results:
-        #todo patrz ponizej
-        st.write("dodaj jak zosia napisze")
+        tournaments = tournament_options()
+        if not tournaments:
+            st.info("No tournaments yet.")
+            return
+
+        tour = st.selectbox("Tournament", tournaments, key="restourselect", format_func=lambda t: t["name"])
+
+        results = tournament_standings(tour["tournament_id"])
+        if not results:
+            st.info("No players yet")
+            return
+
+        st.dataframe(results)
 
 def _starting_list():
     tournaments = tournament_options()
     if not tournaments:
-        st.info("No tournaments yet — add one first.")
+        st.info("No tournaments yet.")
         return
 
     tour = st.selectbox("Tournament", tournaments, format_func=lambda t: t["name"])

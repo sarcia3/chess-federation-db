@@ -272,3 +272,6 @@ def ratings_by_chess_type(chess_type_id):
         AND COALESCE(live_ratings.value, players.value) IS NOT NULL
         ORDER BY live_ratings.value DESC, persons.last_name
         """, str(chess_type_id))
+
+def tournament_standings(tournament_id):
+    return run_query("SELECT * FROM tournament_standings(%s)", (str(tournament_id),))

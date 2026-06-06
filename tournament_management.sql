@@ -15,6 +15,12 @@ DECLARE
    tmp int;
    start_date date;
 BEGIN
+    --
+    IF (SELECT COUNT("game_id") FROM games WHERE tournament_id = p_tournament_id) != 0 THEN
+        RAISE EXCEPTION 'Tournament already has games.';
+    END IF;
+    --check dodany przeze mnie ~sara
+
     SELECT ARRAY_AGG(tp.player_id ORDER BY tp.player_id) INTO players_arr
     FROM tournament_players tp WHERE tp.tournament_id = p_tournament_id;
     IF players_arr IS NULL OR array_length(players_arr, 1) < 2 THEN 

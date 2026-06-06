@@ -1,24 +1,3 @@
-----Player cannot play against himself
---
---CREATE OR REPLACE FUNCTION dont_self_play()
---RETURNS TRIGGER AS
---$$
---BEGIN
---   IF NEW.white_player_id = NEW.black_player_id THEN RAISE EXCEPTION 'A player cannot play against themselves.';
---   END IF;
---   RETURN NEW;
---END;
---$$
---LANGUAGE plpgsql;
---
---CREATE TRIGGER trigger_dont_self_play
---BEFORE INSERT OR UPDATE ON games
---FOR EACH ROW EXECUTE FUNCTION dont_self_play();
-
--- I see no reason for this not to be a check. After discussing I commented this out ~sara.
-
-
-
 --Monitoring contact history: when a new concact data is added, we close previous record
 
 CREATE OR REPLACE FUNCTION close_previous_contact()
@@ -85,3 +64,22 @@ AFTER INSERT ON persons
 FOR EACH ROW EXECUTE FUNCTION person_first_country();
 
 
+CREATE OR REPLACE FUNCTION total_time_matches_chess_type()
+RETURNS TRIGGER AS
+$$
+    DECLARE
+        tt INT;
+    BEGIN
+        tt = get_total_time(NEW.time_control_id);
+        IF (
+            SELECT COALESCE(total_minutes(total_time_from), 0) <= tt AND tt::FLOAT <= COALESCE(total_minutes(total_time_from)::FLOAT, 'INFINITY'::FLOAT)
+            FROM chess_types
+            WHERE chess_type_id = NEW.chess_type_id) THEN RETURN NEW;
+        ELSE RAISE EXCEPTION 'Total time does not match chess type.';
+        END IF;
+    END;
+$$ language plpgsql;
+
+CREATE OR REPLACE TRIGGER total_time_matches_chess_type
+AFTER INSERT OR UPDATE OR DELETE ON tournaments
+FOR EACH ROW EXECUTE FUNCTION total_time_matches_chess_type();
