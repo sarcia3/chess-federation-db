@@ -215,7 +215,8 @@ def tournament_players_raw(tournament_id):
 def tournament_players_full(tournament_id, chess_type_id):
     return run_query(
             """
-            SELECT *, live_ratings.value as live, players.value as pub
+            SELECT *, live_ratings.value as live, players.value as pub, 
+            persons.first_name || ' ' || persons.last_name AS pname
             FROM (tournament_players 
             LEFT OUTER JOIN players_with_latest_published_ratings players USING (player_id)) JOIN persons
             ON players.person_id = persons.person_id
